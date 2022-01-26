@@ -1,0 +1,24 @@
+Import('RTT_ROOT')
+Import('rtconfig')
+from building import *
+
+cwd     = GetCurrentDir()
+src		= Split('''
+sysinfo_cpu.c
+sysinfo_mem.c
+sysinfo_sysname.c
+sysinfo_led.c
+sysinfo_dfs.c
+sysinfo_gcc.c
+sysinfo_date.c
+sysinfo_net.c
+sysinfo.c
+''')
+CPPPATH = [cwd]
+
+# if GetDepend('RT_USING_SYSINFO'):
+#	src		+= ['sysinfo.c']
+
+group = DefineGroup('Sysinfo', src, depend = [''], CPPPATH = CPPPATH)
+
+Return('group')
