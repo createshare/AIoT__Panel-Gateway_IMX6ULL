@@ -1,0 +1,19 @@
+diff --git a/SDL2-2.0.14/src/video/rtt/SDL_rttlcd.c b/SDL2-2.0.14/src/video/rtt/SDL_rttlcd.c
+index 468206e..0a0f0a4 100755
+--- a/SDL2-2.0.14/src/video/rtt/SDL_rttlcd.c
++++ b/SDL2-2.0.14/src/video/rtt/SDL_rttlcd.c
+@@ -8,6 +8,7 @@
+  * 2021-1-14     eason      The first version
+  */
+ 
++#include "cconfig.h"
+ #include "rtdef.h"
+ #include "rt_lcd.h"
+ #include "SDL_surface.h"
+@@ -60,4 +61,4 @@ int RTT_lcdQuit()
+        lcd = NULL;
+     }
+     return ret;
+-}
+\ No newline at end of file
++}

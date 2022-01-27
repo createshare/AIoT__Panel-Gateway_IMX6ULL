@@ -1,0 +1,97 @@
+--- uhttpd/src/uhttpd.c.orig	2020-11-13 21:03:59.000000000 +0800
++++ uhttpd/src/uhttpd.c	2021-03-04 16:40:28.329891532 +0800
+@@ -688,7 +688,7 @@
+ 
+ #ifdef HAVE_TLS
+ 	/* load TLS plugin */
+-	if( ! (lib = dlopen("uhttpd_tls.so", RTLD_LAZY | RTLD_GLOBAL)) )
++	/*if( ! (lib = dlopen("uhttpd_tls.so", RTLD_LAZY | RTLD_GLOBAL)) )
+ 	{
+ 		fprintf(stderr,
+ 			"Notice: Unable to load TLS plugin - disabling SSL support! "
+@@ -697,8 +697,8 @@
+ 	}
+ 	else
+ 	{
+-		/* resolve functions */
+-		if( !(conf.tls_init   = dlsym(lib, "uh_tls_ctx_init"))      ||
++	*/	/* resolve functions */
++/*		if( !(conf.tls_init   = dlsym(lib, "uh_tls_ctx_init"))      ||
+ 		    !(conf.tls_cert   = dlsym(lib, "uh_tls_ctx_cert"))      ||
+ 		    !(conf.tls_key    = dlsym(lib, "uh_tls_ctx_key"))       ||
+ 		    !(conf.tls_free   = dlsym(lib, "uh_tls_ctx_free"))      ||
+@@ -713,14 +713,14 @@
+ 			);
+ 			exit(1);
+ 		}
+-
++*/
+ 		/* init SSL context */
+-		if( ! (conf.tls = conf.tls_init()) )
++/*		if( ! (conf.tls = conf.tls_init()) )
+ 		{
+ 			fprintf(stderr, "Error: Failed to initalize SSL context\n");
+ 			exit(1);
+ 		}
+-	}
++*/	//}
+ #endif
+ 
+ 	while( (opt = getopt(argc, argv,
+@@ -808,12 +808,7 @@
+ 
+ 			/* docroot */
+ 			case 'h':
+-				if( ! realpath(optarg, conf.docroot) )
+-				{
+-					fprintf(stderr, "Error: Invalid directory %s: %s\n",
+-						optarg, strerror(errno));
+-					exit(1);
+-				}
++				strcpy(conf.docroot, optarg);
+ 				break;
+ 
+ 			/* error handler */
+@@ -1022,7 +1017,7 @@
+ 
+ #ifdef HAVE_LUA
+ 	/* load Lua plugin */
+-	if( ! (lib = dlopen("uhttpd_lua.so", RTLD_LAZY | RTLD_GLOBAL)) )
++	/*if( ! (lib = dlopen("uhttpd_lua.so", RTLD_LAZY | RTLD_GLOBAL)) )
+ 	{
+ 		fprintf(stderr,
+ 			"Notice: Unable to load Lua plugin - disabling Lua support! "
+@@ -1031,8 +1026,8 @@
+ 	}
+ 	else
+ 	{
+-		/* resolve functions */
+-		if( !(conf.lua_init    = dlsym(lib, "uh_lua_init"))    ||
++	*/	/* resolve functions */
++/*		if( !(conf.lua_init    = dlsym(lib, "uh_lua_init"))    ||
+ 		    !(conf.lua_close   = dlsym(lib, "uh_lua_close"))   ||
+ 		    !(conf.lua_request = dlsym(lib, "uh_lua_request"))
+ 		) {
+@@ -1042,17 +1037,17 @@
+ 			);
+ 			exit(1);
+ 		}
+-
++*/
+ 		/* init Lua runtime if handler is specified */
+-		if( conf.lua_handler )
+-		{
++//		if( conf.lua_handler )
++//		{
+ 			/* default lua prefix */
+-			if( ! conf.lua_prefix )
++/*			if( ! conf.lua_prefix )
+ 				conf.lua_prefix = "/lua";
+ 
+ 			conf.lua_state = conf.lua_init(conf.lua_handler);
+ 		}
+-	}
++*/	//}
+ #endif
+ 
+ 	/* fork (if not disabled) */

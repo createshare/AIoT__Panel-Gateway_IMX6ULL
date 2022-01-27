@@ -1,0 +1,40 @@
+.new-page{
+  height: 100%;
+  background-color: @base-bg-color;
+  text-align: center;
+  padding: 20px;
+  border-radius: 4px;
+  //margin-top: -24px;
+  h1{
+    font-size: 48px;
+  }
+}
+
+.tab-title {
+  float: left;
+  width: calc(100% / 3);
+  padding: 10px 0;
+  text-align: center;
+  cursor: pointer;
+
+  div {
+    background-color: #e8e8e8;
+  }
+
+  &:first-child {
+    div {
+      border-radius: 20px 0 0 0;
+    }
+  }
+
+  &:last-child {
+    div {
+      border-radius: 0 20px 0 0;
+    }
+  }
+
+  .active {
+    background-color: #09f;
+    color: #fff;
+  }
+}

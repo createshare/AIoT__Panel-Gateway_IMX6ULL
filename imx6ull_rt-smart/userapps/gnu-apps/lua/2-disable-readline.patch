@@ -1,0 +1,11 @@
+--- lua-5.1.4_old/src/luaconf.h	2008-02-12 00:25:08.000000000 +0800
++++ lua-5.1.4/src/luaconf.h	2021-12-03 17:49:16.254004483 +0800
+@@ -36,7 +36,7 @@
+ #if defined(LUA_USE_LINUX)
+ #define LUA_USE_POSIX
+ #define LUA_USE_DLOPEN		/* needs an extra library: -ldl */
+-#define LUA_USE_READLINE	/* needs some extra libraries */
++//#define LUA_USE_READLINE	/* needs some extra libraries */
+ #endif
+ 
+ #if defined(LUA_USE_MACOSX)

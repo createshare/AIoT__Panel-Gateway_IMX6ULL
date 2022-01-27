@@ -1,0 +1,80 @@
+diff --git sqlite-autoconf-3340000/shell.c.orig sqlite-autoconf-3340000/shell.c
+index dfdeac7..3f4ce1e 100644
+--- sqlite-autoconf-3340000/shell.c.orig
++++ sqlite-autoconf-3340000/shell.c
+@@ -653,7 +653,57 @@ static int notNormalFile(const char *zFile){
+   return rc || !S_ISREG(x.st_mode);
+ }
+ #endif
++int stdin_readline(char *buf, int length, FILE *in)
++{
++  int index;
++  char ch;
+ 
++  if (buf == NULL) return 0;
++
++  index = 0;
++  while (index < length)
++  {
++    int size;
++    size = fread(&ch, 1, 1, in);
++
++    if(size != 1)
++    {
++      continue;
++    }
++
++    if (ch == '\0' || ch == 0xFF) continue;
++    else if (ch == 0x7f || ch == 0x08)
++    {
++      if (index == 0)
++      {
++        continue;
++      }
++      else
++      {
++        printf("\b \b");
++        fflush(stdout);
++        index--;
++      }
++      continue;
++    }
++
++    printf("%c", ch);
++    fflush(stdout);
++    if (ch == '\r')
++      buf[index++] = '\n';
++    else
++      buf[index++] = ch;
++
++    if ((ch == '\n') || (ch == '\r'))
++    {
++      printf("\n");
++      break;
++    }
++  }
++
++  if (index < length) buf[index] = '\0';
++  return index;
++}
+ /*
+ ** This routine reads a line of text from FILE in, stores
+ ** the text in memory obtained from malloc() and returns a pointer
+@@ -673,7 +723,7 @@ static char *local_getline(char *zLine, FILE *in){
+       zLine = realloc(zLine, nLine);
+       if( zLine==0 ) shell_out_of_memory();
+     }
+-    if( fgets(&zLine[n], nLine - n, in)==0 ){
++    if( stdin_readline(&zLine[n], nLine - n, in)==0 ){
+       if( n==0 ){
+         free(zLine);
+         return 0;
+@@ -729,7 +779,7 @@ static char *one_input_line(FILE *in, char *zPrior, int isContinuation){
+     zResult = local_getline(zPrior, in);
+   }else{
+     zPrompt = isContinuation ? continuePrompt : mainPrompt;
+-#if SHELL_USE_LOCAL_GETLINE
++#if 1//SHELL_USE_LOCAL_GETLINE
+     printf("%s", zPrompt);
+     fflush(stdout);
+     zResult = local_getline(zPrior, stdin);

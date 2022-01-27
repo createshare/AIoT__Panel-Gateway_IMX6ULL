@@ -1,0 +1,66 @@
+diff --git a/SDL2-2.0.14/src/video/rtt/SDL_rttlcd.h b/SDL2-2.0.14/src/video/rtt/SDL_rttlcd.h
+index f3206d5..081ec86 100755
+--- a/SDL2-2.0.14/src/video/rtt/SDL_rttlcd.h
++++ b/SDL2-2.0.14/src/video/rtt/SDL_rttlcd.h
+@@ -11,9 +11,9 @@
+ #ifndef SDL_RTTLCD_H_
+ #define SDL_RTTLCD_H_
+ 
+-#define LCD_COLOR_SPACE SDL_PIXELFORMAT_RGB565
+-#define LCD_WIDTH 640
+-#define LCD_HEIGHT 480
++#define LCD_COLOR_SPACE SDL_PIXELFORMAT_RGB555
++#define LCD_WIDTH 1024
++#define LCD_HEIGHT 600
+ 
+ #define RTGRAPHIC_CTRL_RECT_UPDATE 0
+ 
+@@ -21,4 +21,4 @@ int RTT_surface2lcd(SDL_Surface *surface);
+ int RTT_lcdInit();
+ int RTT_lcdQuit();
+ 
+-#endif
+\ No newline at end of file
++#endif
+diff --git a/SDL2-2.0.14/test/testrtt.c b/SDL2-2.0.14/test/testrtt.c
+index e5014d2..b96c489 100755
+--- a/SDL2-2.0.14/test/testrtt.c
++++ b/SDL2-2.0.14/test/testrtt.c
+@@ -12,8 +12,8 @@
+ 
+ #define POINTS_COUNT 4
+ 
+-const int SCREEN_WIDTH = 640;
+-const int SCREEN_HEIGHT = 480;
++const int SCREEN_WIDTH = 1024;
++const int SCREEN_HEIGHT = 600;
+ 
+ static SDL_Point points[POINTS_COUNT] = {
+     {320, 200},
+@@ -45,7 +45,7 @@ int main( int argc, char* argv[] )
+ 	SDL_Renderer *renderer;
+ 	SDL_Texture *texture;
+ 
+-	if( argc != 2 )
++	if(( argc != 2 ) && (argc != 3))
+ 	{
+ 		usage(argv[0]);
+ 		return(1);
+@@ -87,7 +87,7 @@ int main( int argc, char* argv[] )
+ 	else if(0 == strcmp("-t",argv[1]))
+ 	{
+ 		texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB565,\
+-									SDL_TEXTUREACCESS_TARGET, 640, 480);
++									SDL_TEXTUREACCESS_TARGET, SCREEN_WIDTH, SCREEN_HEIGHT);
+ 		rect.w = 320;//rand()%500;
+ 		rect.h = 240;//rand()%500;
+ 		SDL_SetRenderTarget(renderer,texture);
+@@ -103,7 +103,7 @@ int main( int argc, char* argv[] )
+ 	}
+ 	else if(0 == strcmp("-p",argv[1]))
+ 	{
+-		screenSurface = SDL_LoadBMP("/mnt/test.bmp");
++		screenSurface = SDL_LoadBMP(argv[2]);
+ 		if(!screenSurface)
+ 		{
+ 			printf("SDL_LoadBMP failed\n");	

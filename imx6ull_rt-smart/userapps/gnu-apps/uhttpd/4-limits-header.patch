@@ -1,0 +1,33 @@
+--- uhttpd/src/uhttpd-cgi.h.orig	2021-03-19 14:24:09.501515877 +0800
++++ uhttpd/src/uhttpd-cgi.h	2021-03-19 14:24:21.809522620 +0800
+@@ -22,7 +22,7 @@
+ #include <unistd.h>
+ #include <sys/stat.h>
+ #include <sys/types.h>
+-#include <linux/limits.h>
++#include <limits.h>
+ 
+ void uh_cgi_request(
+ 	struct client *cl, struct http_request *req,
+--- uhttpd/src/uhttpd-file.h.orig	2021-03-19 14:23:39.013500888 +0800
++++ uhttpd/src/uhttpd-file.h	2021-03-19 14:23:51.777506860 +0800
+@@ -24,7 +24,7 @@
+ #include <dirent.h>
+ #include <sys/stat.h>
+ #include <sys/types.h>
+-#include <linux/limits.h>
++#include <limits.h>
+ 
+ struct mimetype {
+ 	const char *extn;
+--- uhttpd/src/uhttpd.h.orig	2021-03-19 14:22:30.865476889 +0800
++++ uhttpd/src/uhttpd.h	2021-03-19 14:22:48.585481798 +0800
+@@ -30,7 +30,7 @@
+ #include <netinet/in.h>
+ #include <netinet/tcp.h>
+ #include <arpa/inet.h>
+-#include <linux/limits.h>
++#include <limits.h>
+ #include <netdb.h>
+ #include <ctype.h>
+ #include <errno.h>

@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+ <root xmlns="urn:schemas-upnp-org:device-1-0">
+     <specVersion>
+         <major>1</major>
+         <minor>0</minor>
+     </specVersion>
+     <device>
+         <deviceType>urn:schemas-upnp-org:device:rootdevice:1</deviceType>
+         <friendlyName>art-pi-smart-xxx</friendlyName>
+         <manufacturer>rt-thread</manufacturer>
+         <manufacturerURL>https://www.rt-thread.org/</manufacturerURL>
+         <modelDescription>imx6ull rootdevice</modelDescription>
+         <modelName>imx6ull</modelName>
+         <modelNumber>1</modelNumber>
+        <modelURL>https://www.rt-thread.org/</modelURL>		 
+         <UDN>uuid:xxxxxxxx-1234-1234-1234-aaaaaaaaaaaa</UDN>
+         <serviceList>
+             <service>
+                 <URLBase>http://xxx.xxx.xxx.xxx/</URLBase>
+                 <serviceType>urn:schemas-upnp-org:service:SwitchPower:1</serviceType>
+                 <serviceId>urn:upnp-org:serviceId:SwitchPower:1</serviceId>
+                 <SCPDURL>switchpower_scpd.xml</SCPDURL>
+                 <controlURL>/control</controlURL>
+                 <eventSubURL>/eventing</eventSubURL>
+             </service>
+         </serviceList>
+         <presentationURL>http://xxx.xxx.xxx.xxx/</presentationURL>
+     </device>
+ </root>

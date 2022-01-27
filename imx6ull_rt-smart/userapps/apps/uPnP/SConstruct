@@ -1,0 +1,3 @@
+from building import *
+
+BuildApplication('upnp_daemon', 'SConscript', usr_root = '../..')

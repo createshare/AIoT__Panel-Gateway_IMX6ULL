@@ -1,0 +1,23 @@
+diff --git a/sqlite3.c b/sqlite3.c
+index 41937b7..4b2873a 100644
+--- a/sqlite3.c
++++ b/sqlite3.c
+@@ -931,6 +931,8 @@ SQLITE_PRIVATE const char **sqlite3CompileOptions(int *pnOpt){
+ #define HAVE_LSTAT 1
+ #endif /* defined(_WRS_KERNEL) */
+ 
++#define RT_THREAD 1
++
+ /************** End of vxworks.h *********************************************/
+ /************** Continuing where we left off in sqliteInt.h ******************/
+ 
+@@ -35087,6 +35089,9 @@ static int findInodeInfo(
+ static int fileHasMoved(unixFile *pFile){
+ #if OS_VXWORKS
+   return pFile->pInode!=0 && pFile->pId!=pFile->pInode->fileId.pId;
++#elif RT_THREAD
++  struct stat buf;
++  return pFile->pInode!=0 && osStat(pFile->zPath, &buf)!=0;
+ #else
+   struct stat buf;
+   return pFile->pInode!=0 &&

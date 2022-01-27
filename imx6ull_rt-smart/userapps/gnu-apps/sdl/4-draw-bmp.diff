@@ -1,0 +1,42 @@
+diff --git a/SDL2-2.0.14/test/testrtt.c b/SDL2-2.0.14/test/testrtt.c
+index a1df434..e5014d2 100755
+--- a/SDL2-2.0.14/test/testrtt.c
++++ b/SDL2-2.0.14/test/testrtt.c
+@@ -30,7 +30,8 @@ void usage(char * proc_name)
+ 	printf(	"\toption:\n"
+ 		"\t-l	draw line\n"
+ 		"\t-r	draw a rectangle\n"
+-		"\t-t	draw a rectangle with texture\n");
++		"\t-t	draw a rectangle with texture\n"
++		"\t-p	draw a bmp picture with texture\n");
+ }
+ 
+ 
+@@ -100,6 +101,18 @@ int main( int argc, char* argv[] )
+ 		SDL_SetRenderTarget(renderer,NULL);
+ 		SDL_RenderCopy(renderer,texture,NULL,NULL);
+ 	}
++	else if(0 == strcmp("-p",argv[1]))
++	{
++		screenSurface = SDL_LoadBMP("/mnt/test.bmp");
++		if(!screenSurface)
++		{
++			printf("SDL_LoadBMP failed\n");	
++			goto end;
++		}
++		texture = SDL_CreateTextureFromSurface(renderer, screenSurface);
++		SDL_SetRenderTarget(renderer,texture);
++		SDL_RenderCopy(renderer,texture,NULL,NULL);
++	}
+ 	else
+ 	{
+ 		usage(argv[0]);
+@@ -108,7 +121,7 @@ int main( int argc, char* argv[] )
+ 
+ 	SDL_RenderPresent(renderer);
+ 	SDL_Delay( 2000 );
+-
++end:
+     //destory renderer
+     if (renderer) {
+         SDL_DestroyRenderer(renderer);

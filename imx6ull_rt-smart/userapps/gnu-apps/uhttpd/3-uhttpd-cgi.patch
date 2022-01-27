@@ -1,0 +1,11 @@
+--- uhttpd/src/uhttpd-cgi.c.orig	2021-03-16 19:27:44.586118409 +0800
++++ uhttpd/src/uhttpd-cgi.c	2021-03-16 20:33:30.633557528 +0800
+@@ -202,7 +202,7 @@
+ 			dup2(wfd[0], 0);
+ 
+ 			/* check for regular, world-executable file _or_ interpreter */
+-			if( ((pi->stat.st_mode & S_IFREG) &&
++			if( ((pi->stat.st_mode & S_IFREG) ||
+ 			     (pi->stat.st_mode & S_IXOTH)) || (ip != NULL)
+ 			) {
+ 				/* build environment */

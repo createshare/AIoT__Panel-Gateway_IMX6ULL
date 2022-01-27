@@ -1,0 +1,104 @@
+--- uhttpd/src/Makefile.orig	2020-11-13 20:58:52.000000000 +0800
++++ uhttpd/src/Makefile	2021-03-02 12:25:38.972713387 +0800
+@@ -2,10 +2,27 @@
+ LUA_SUPPORT ?= 1
+ TLS_SUPPORT ?= 1
+ 
+-CFLAGS ?= -I./lua-5.1.4/src -I./cyassl-1.4.0/include -O0 -ggdb3
+-LDFLAGS ?= -L./lua-5.1.4/src -L./cyassl-1.4.0/src/.libs
++CROSS_COMPILE= arm-linux-musleabi-
++CC= $(CROSS_COMPILE)gcc
++CXX= $(CROSS_COMPILE)g++
++CFLAGS= -O2 -Wall $(MYCFLAGS)
++AR= $(CROSS_COMPILE)ar
++RANLIB= $(CROSS_COMPILE)ranlib
++ARFLAGS=rc
++
++
++PWD := $(shell pwd)
++# userapp dir
++ROOTDIR := $(PWD)/../../../..
++RT_DIR=$(ROOTDIR)/sdk/rt-thread
++INC_DIR=${ROOTDIR}/sdk/include
++LIB_DIR=${ROOTDIR}/sdk/lib
+ 
+-CFLAGS += -Wall --std=gnu99
++CFLAGS += -march=armv7-a -marm -msoft-float -D__RTTHREAD__ -Wall -O2 -n --static -I. -I$(RT_DIR)/include -I$(RT_DIR)/components/dfs -I$(RT_DIR)/components/drivers -I$(RT_DIR)/components/finsh -I$(RT_DIR)/components/net -I${INC_DIR}
++
++LDFLAGS += -L. -L${LIB_DIR} -T $(ROOTDIR)/linker_scripts/arm/cortex-a/link.lds -march=armv7-a -marm -msoft-float -L$(RT_DIR)/lib -Wl,--whole-archive -lrtthread -Wl,--no-whole-archive -n --static -Wl,--start-group -lrtthread -Wl,--end-group
++
++CFLAGS+= -Wall --std=gnu99
+ 
+ OBJ = uhttpd.o uhttpd-file.o uhttpd-utils.o
+ LIB = -Wl,--export-dynamic -lcrypt -ldl
+@@ -27,32 +44,58 @@
+   CFLAGS += -DHAVE_CGI
+ endif
+ 
++
+ ifeq ($(LUA_SUPPORT),1)
++  OBJL = uhttpd-lua.o
+   CFLAGS += -DHAVE_LUA
+-  LUALIB = uhttpd_lua.so
+ 
+-  $(LUALIB): uhttpd-lua.c
+-		$(CC) $(CFLAGS) $(LDFLAGS) $(FPIC) \
+-			-shared -lm -llua -ldl \
+-			-o $(LUALIB) uhttpd-lua.c
++  LUALIB = libuhttpd_lua.a
++  $(LUALIB): $(OBJL)
++	$(AR) $(ARFLAGS) $@ $(OBJL) 
++	-@ ($(RANLIB) $@ || true) >/dev/null 2>&1
++
++  LIB+= -lm -llua -ldl -luhttpd_lua
+ endif
+ 
++#ifeq ($(LUA_SUPPORT),1)
++#  CFLAGS += -DHAVE_LUA
++#  LUALIB = uhttpd_lua.a
++
++#  $(LUALIB): uhttpd-lua.c
++#		$(CC) $(CFLAGS) $(LDFLAGS) $(FPIC) \
++#			-static -lm -llua -ldl \
++#			-o $(LUALIB) uhttpd-lua.c
++#endif
++
++
+ ifeq ($(TLS_SUPPORT),1)
++  OBJT = uhttpd-tls.o
+   CFLAGS += -DHAVE_TLS
+-  TLSLIB = uhttpd_tls.so
+ 
+-  $(TLSLIB): uhttpd-tls.c
+-		$(CC) $(CFLAGS) $(LDFLAGS) $(FPIC) \
+-			-shared -lcyassl \
+-			-o $(TLSLIB) uhttpd-tls.c
++  TLSLIB = libuhttpd_tls.a
++  $(TLSLIB): $(OBJT)
++	$(AR) $(ARFLAGS) $@ $(OBJT)
++	-@ ($(RANLIB) $@ || true) >/dev/null 2>&1
++ 
++  LIB+= -lssl -luhttpd_tls
+ endif
+ 
++#ifeq ($(TLS_SUPPORT),1)
++#  CFLAGS += -DHAVE_TLS
++#  TLSLIB = uhttpd_tls.a
++
++#  $(TLSLIB): uhttpd-tls.c
++#		$(CC) $(CFLAGS) $(LDFLAGS) $(FPIC) \
++#			-static -lssl \
++#			-o $(TLSLIB) uhttpd-tls.c
++#endif
++
+ %.o: %.c
+ 	$(CC) $(CFLAGS) -c -o $@ $<
+ 
+ compile: $(OBJ) $(TLSLIB) $(LUALIB)
+-	$(CC) -o uhttpd $(LDFLAGS) $(LIB) $(OBJ)
++	$(CXX) -o uhttpd $(LDFLAGS) $(LIB) $(OBJ)
+ 
+ clean:
+-	rm -f *.o *.so uhttpd
++	rm -f *.o *.a uhttpd
+ 

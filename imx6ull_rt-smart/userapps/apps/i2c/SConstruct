@@ -1,0 +1,3 @@
+from building import *
+
+BuildApplication('i2c', 'SConscript', usr_root = '../..')

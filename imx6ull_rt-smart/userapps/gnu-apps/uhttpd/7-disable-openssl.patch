@@ -1,0 +1,10 @@
+--- uhttpd_old/src/Makefile	2021-12-02 23:37:36.156874000 +0800
++++ uhttpd/src/Makefile	2021-12-02 23:40:33.574799745 +0800
+@@ -1,6 +1,6 @@
+ CGI_SUPPORT ?= 1
+ LUA_SUPPORT ?= 1
+-TLS_SUPPORT ?= 1
++TLS_SUPPORT ?= 0
+ 
+ CROSS_COMPILE= arm-linux-musleabi-
+ CC= $(CROSS_COMPILE)gcc

@@ -1,0 +1,3 @@
+from building import *
+
+BuildApplication('pwm', 'SConscript', usr_root = '../..')

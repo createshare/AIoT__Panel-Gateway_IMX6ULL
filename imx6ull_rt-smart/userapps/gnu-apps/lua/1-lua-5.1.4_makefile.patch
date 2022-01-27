@@ -1,0 +1,62 @@
+--- lua-5.1.4/src/Makefile.orig	2008-01-20 03:37:58.000000000 +0800
++++ lua-5.1.4/src/Makefile	2021-07-01 20:13:20.756865376 +0800
+@@ -5,18 +5,30 @@
+ # == CHANGE THE SETTINGS BELOW TO SUIT YOUR ENVIRONMENT =======================
+ 
+ # Your platform. See PLATS for possible values.
+-PLAT= none
++PLAT= generic
+ 
+-CC= gcc
++
++CROSS_COMPILE= arm-linux-musleabi-
++CC= $(CROSS_COMPILE)gcc
++CXX= $(CROSS_COMPILE)g++
+ CFLAGS= -O2 -Wall $(MYCFLAGS)
+-AR= ar rcu
+-RANLIB= ranlib
++AR= $(CROSS_COMPILE)ar rcu
++RANLIB= $(CROSS_COMPILE)ranlib
+ RM= rm -f
+ LIBS= -lm $(MYLIBS)
+ 
+-MYCFLAGS=
+-MYLDFLAGS=
+-MYLIBS=
++
++PWD := $(shell pwd)
++# userapp dir
++ROOTDIR := $(PWD)/../../../..
++RT_DIR=$(ROOTDIR)/sdk/rt-thread
++
++
++MYCFLAGS= -march=armv7-a -marm -msoft-float -D__RTTHREAD__ -DLUA_USE_LINUX -Wall -O2 -n --static -I. -I$(RT_DIR)/include -I$(RT_DIR)/components/dfs -I$(RT_DIR)/components/drivers -I$(RT_DIR)/components/finsh -I$(RT_DIR)/components/net -I$(RT_DIR)/../include
++
++MYLDFLAGS= -T $(ROOTDIR)/linker_scripts/arm/cortex-a/link.lds -march=armv7-a -marm -msoft-float -L$(RT_DIR)/lib -L$(RT_DIR)/../lib -Wl,--whole-archive -lrtthread -Wl,--no-whole-archive -n --static -Wl,--start-group -lrtthread -Wl,--end-group
++
++MYLIBS= -lreadline -lhistory -lncurses
+ 
+ # == END OF USER SETTINGS. NO NEED TO CHANGE ANYTHING BELOW THIS LINE =========
+ 
+@@ -52,10 +64,10 @@
+ 	$(RANLIB) $@
+ 
+ $(LUA_T): $(LUA_O) $(LUA_A)
+-	$(CC) -o $@ $(MYLDFLAGS) $(LUA_O) $(LUA_A) $(LIBS)
++	$(CXX) -o $@ $(MYLDFLAGS) $(LUA_O) $(LUA_A) $(LIBS)
+ 
+ $(LUAC_T): $(LUAC_O) $(LUA_A)
+-	$(CC) -o $@ $(MYLDFLAGS) $(LUAC_O) $(LUA_A) $(LIBS)
++	$(CXX) -o $@ $(MYLDFLAGS) $(LUAC_O) $(LUA_A) $(LIBS)
+ 
+ clean:
+ 	$(RM) $(ALL_T) $(ALL_O)
+@@ -93,7 +105,7 @@
+ 	$(MAKE) all MYCFLAGS="-DLUA_USE_LINUX" MYLIBS="-Wl,-E -lreadline"
+ 
+ generic:
+-	$(MAKE) all MYCFLAGS=
++	$(MAKE) all 
+ 
+ linux:
+ 	$(MAKE) all MYCFLAGS=-DLUA_USE_LINUX MYLIBS="-Wl,-E -ldl -lreadline -lhistory -lncurses"

@@ -1,0 +1,12 @@
+--- sqlite-autoconf-3340000/shell.c.orig	2020-12-10 19:45:58.245185029 +0800
++++ sqlite-autoconf-3340000/shell.c	2020-12-10 19:46:45.232325740 +0800
+@@ -20608,7 +20608,8 @@
+ #endif
+ 
+   if (!home_dir) {
+-    home_dir = getenv("HOME");
++    //home_dir = getenv("HOME");
++    home_dir = "/mnt";
+   }
+ 
+ #if defined(_WIN32) || defined(WIN32)

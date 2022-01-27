@@ -1,0 +1,249 @@
+diff --git a/SDL2-2.0.14/src/video/rtt/SDL_rttframebuffer.c b/SDL2-2.0.14/src/video/rtt/SDL_rttframebuffer.c
+index 55c2c8c..374346a 100755
+--- a/SDL2-2.0.14/src/video/rtt/SDL_rttframebuffer.c
++++ b/SDL2-2.0.14/src/video/rtt/SDL_rttframebuffer.c
+@@ -18,11 +18,11 @@
+ #include "SDL_rttvideo.h"
+ 
+ #define RTT_SURFACE   "_SDL_RttSurface"
+-
++extern Uint32 rtt_lcd_pixel_format;
+ int SDL_RTT_CreateWindowFramebuffer(_THIS, SDL_Window * window, Uint32 * format, void ** pixels, int *pitch)
+ {
+     SDL_Surface *surface;
+-    const Uint32 surface_format = LCD_COLOR_SPACE;
++    const Uint32 surface_format = rtt_lcd_pixel_format;
+     int w, h;
+     int bpp;
+     Uint32 Rmask, Gmask, Bmask, Amask;
+diff --git a/SDL2-2.0.14/src/video/rtt/SDL_rttlcd.c b/SDL2-2.0.14/src/video/rtt/SDL_rttlcd.c
+index 0a0f0a4..6657cbe 100755
+--- a/SDL2-2.0.14/src/video/rtt/SDL_rttlcd.c
++++ b/SDL2-2.0.14/src/video/rtt/SDL_rttlcd.c
+@@ -6,6 +6,7 @@
+  * Change Logs:
+  * Date           Author       Notes
+  * 2021-1-14     eason      The first version
++ * 2021-9-6     songchao      modify for art-pi-samrt 
+  */
+ 
+ #include "cconfig.h"
+@@ -14,41 +15,67 @@
+ #include "SDL_surface.h"
+ #include "SDL_pixels.h"
+ #include "SDL_rttlcd.h"
++#include "rtthread.h"
+ 
+-
+-#define LCD_BUF_SIZE (LCD_WIDTH * LCD_HEIGHT)
+-
+-rt_uint16_t pixel_ptr[LCD_BUF_SIZE];
+ rt_device_t lcd = NULL;
+ struct fb_fix_screeninfo f_info;
+ struct fb_var_screeninfo v_info;
+ 
+ int RTT_surface2lcd(SDL_Surface *surface)
+ {
+-    int index = 0;
+-    int i;
+     if (lcd)
+     {
+-        memcpy((void *)f_info.smem_start, (rt_uint16_t *)(surface->pixels), LCD_BUF_SIZE*2);
++        memcpy((void *)f_info.smem_start, (rt_uint8_t *)(surface->pixels), f_info.smem_len);
+         rt_thread_mdelay(100);
+         rt_device_control(lcd, RTGRAPHIC_CTRL_RECT_UPDATE, NULL);
+     }
+-
+     return 0;
+ }
+ 
+-int RTT_lcdInit()
++int RTT_lcdInit(struct rtt_lcd_config* config)
+ {
+    rt_err_t ret = -1;
++
++   if(config == NULL)
++   {
++       return 1;
++   }
++
+    lcd = rt_device_find("lcd");
+-   if(!lcd) return 1;
++   if(!lcd)
++   {
++       return 1;
++   }
+    ret = rt_device_open(lcd, RT_DEVICE_OFLAG_RDWR);
+-   if(-1 ==ret) return 1;
++   if(-1 ==ret)
++   {
++       return 1;
++   }    
+    rt_device_control(lcd, FBIOGET_FSCREENINFO, &f_info);
+    printf("screen: %s - 0x%08x, size %d\n", f_info.id, (unsigned int)f_info.smem_start, f_info.smem_len);
+-   
+    rt_device_control(lcd, FBIOGET_VSCREENINFO, &v_info);
+    printf("screen: bpp %d, width - %d, height - %d\n", v_info.bits_per_pixel, v_info.xres, v_info.yres);
++   config->lcd_width = v_info.xres;
++   config->lcd_height = v_info.yres;
++   config->lcd_bits_per_pixel = v_info.bits_per_pixel;
++   if(config->lcd_bits_per_pixel == 16)
++   {
++#if ART_PI_SMART
++        config->lcd_pixel_format = SDL_PIXELFORMAT_RGB555;        
++#else
++        config->lcd_pixel_format = SDL_PIXELFORMAT_RGB565;  
++#endif       
++   }
++   else if(config->lcd_bits_per_pixel == 32)
++   {
++       config->lcd_pixel_format = SDL_PIXELFORMAT_RGB888; 
++   }
++   else
++   {
++       printf("lcd_pixel_format %d not support\n",config->lcd_pixel_format);
++       return 1;
++   }
++
+    return ret;
+ }
+ 
+diff --git a/SDL2-2.0.14/src/video/rtt/SDL_rttlcd.h b/SDL2-2.0.14/src/video/rtt/SDL_rttlcd.h
+index 081ec86..7a678a1 100755
+--- a/SDL2-2.0.14/src/video/rtt/SDL_rttlcd.h
++++ b/SDL2-2.0.14/src/video/rtt/SDL_rttlcd.h
+@@ -6,16 +6,22 @@
+  * Change Logs:
+  * Date           Author       Notes
+  * 2021-1-14     eason      The first version
++ * 2021-9-6      songchao   modify for art-pi-smart
+  */
+ 
+ #ifndef SDL_RTTLCD_H_
+ #define SDL_RTTLCD_H_
+ 
+-#define LCD_COLOR_SPACE SDL_PIXELFORMAT_RGB555
+-#define LCD_WIDTH 1024
+-#define LCD_HEIGHT 600
+-
+ #define RTGRAPHIC_CTRL_RECT_UPDATE 0
++#define ART_PI_SMART 1
++
++struct rtt_lcd_config
++{
++    Uint32 lcd_width;
++    Uint32 lcd_height;
++    Uint32 lcd_bits_per_pixel;
++    Uint32 lcd_pixel_format;
++};
+ 
+ int RTT_surface2lcd(SDL_Surface *surface);
+ int RTT_lcdInit();
+diff --git a/SDL2-2.0.14/src/video/rtt/SDL_rttvideo.c b/SDL2-2.0.14/src/video/rtt/SDL_rttvideo.c
+index c967d22..718263d 100755
+--- a/SDL2-2.0.14/src/video/rtt/SDL_rttvideo.c
++++ b/SDL2-2.0.14/src/video/rtt/SDL_rttvideo.c
+@@ -6,13 +6,13 @@
+  * Change Logs:
+  * Date           Author       Notes
+  * 2021-1-14     eason      The first version
++ * 2021-9-6      songchao   modify for art-pi-smart
+  */
+ 
+ #include "../../SDL_internal.h"
+ 
+ #if SDL_VIDEO_DRIVER_RTT
+ 
+-
+ /* 
+ *  Poting SDL to rt-smart platform baseed on Dummy SDL video driver ;
+ */
+@@ -31,6 +31,10 @@ static int RTT_VideoInit(_THIS);
+ static int RTT_SetDisplayMode(_THIS, SDL_VideoDisplay * display, SDL_DisplayMode * mode);
+ static void RTT_VideoQuit(_THIS);
+ 
++Uint32 rtt_screen_width;
++Uint32 rtt_screen_heigth;
++Uint32 rtt_lcd_pixel_format;
++
+ static int
+ RTT_Available(void)
+ {
+@@ -61,8 +65,8 @@ int RTT_CreateWindow(_THIS, SDL_Window * window)
+     Rtt_Window = window;
+     window->x = 0;
+     window->y = 0;
+-    window->w = WINDOW_WIDTH_MAX;
+-    window->h = WINDOW_HEIGHT_MAX;
++    window->w = rtt_screen_width;
++    window->h = rtt_screen_heigth;
+ 
+     window->flags &= ~SDL_WINDOW_HIDDEN;
+     window->flags |= SDL_WINDOW_SHOWN;          /* only one window on Android */
+@@ -117,11 +121,19 @@ int
+ RTT_VideoInit(_THIS)
+ {
+     SDL_DisplayMode mode;
++    struct rtt_lcd_config config;
+ 
++    if(RTT_lcdInit(&config) != 0)
++    {
++        return -1;
++    }
++    rtt_screen_width = config.lcd_width;
++    rtt_screen_heigth = config.lcd_height;
++    rtt_lcd_pixel_format = config.lcd_pixel_format;
+     /* Use a fake 32-bpp desktop mode */
+-    mode.format = LCD_COLOR_SPACE;
+-    mode.w = LCD_WIDTH;
+-    mode.h = LCD_HEIGHT;
++    mode.format = config.lcd_pixel_format;
++    mode.w = config.lcd_width;
++    mode.h = config.lcd_height;
+     mode.refresh_rate = 0;
+     mode.driverdata = NULL;
+     if (SDL_AddBasicVideoDisplay(&mode) < 0) {
+@@ -131,10 +143,6 @@ RTT_VideoInit(_THIS)
+     SDL_zero(mode);
+     SDL_AddDisplayMode(&_this->displays[0], &mode);
+ 
+-    if(RTT_lcdInit() != 0)
+-    {
+-        return -1;
+-    }
+     /* We're done! */
+     return 0;
+ }
+diff --git a/SDL2-2.0.14/test/testrtt.c b/SDL2-2.0.14/test/testrtt.c
+index b96c489..648e60e 100755
+--- a/SDL2-2.0.14/test/testrtt.c
++++ b/SDL2-2.0.14/test/testrtt.c
+@@ -12,8 +12,8 @@
+ 
+ #define POINTS_COUNT 4
+ 
+-const int SCREEN_WIDTH = 1024;
+-const int SCREEN_HEIGHT = 600;
++extern Uint32 rtt_screen_width;
++extern Uint32 rtt_screen_heigth;
+ 
+ static SDL_Point points[POINTS_COUNT] = {
+     {320, 200},
+@@ -60,7 +60,7 @@ int main( int argc, char* argv[] )
+ 	}
+ 
+ 
+-	window = SDL_CreateWindow( "SDL Tutorial", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
++	window = SDL_CreateWindow( "SDL Tutorial", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, rtt_screen_width, rtt_screen_heigth, SDL_WINDOW_SHOWN );
+ 	if( window == NULL )
+ 	{
+ 		printf( "Window could not be created! SDL_Error: %s\n", SDL_GetError() );
+@@ -87,7 +87,7 @@ int main( int argc, char* argv[] )
+ 	else if(0 == strcmp("-t",argv[1]))
+ 	{
+ 		texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB565,\
+-									SDL_TEXTUREACCESS_TARGET, SCREEN_WIDTH, SCREEN_HEIGHT);
++									SDL_TEXTUREACCESS_TARGET, rtt_screen_width, rtt_screen_heigth);
+ 		rect.w = 320;//rand()%500;
+ 		rect.h = 240;//rand()%500;
+ 		SDL_SetRenderTarget(renderer,texture);

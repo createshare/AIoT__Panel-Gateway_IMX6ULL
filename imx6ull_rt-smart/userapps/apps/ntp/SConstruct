@@ -1,0 +1,3 @@
+from building import *
+
+BuildApplication('ntp', 'SConscript', usr_root = '../..')

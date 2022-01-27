@@ -1,0 +1,13 @@
+--- uhttpd/src/uhttpd-cgi.c.orig	2021-08-11 17:16:40.001209321 +0800
++++ uhttpd/src/uhttpd-cgi.c	2021-08-11 17:17:09.463840407 +0800
+@@ -385,8 +385,8 @@
+ 				FD_SET(rfd[0], &reader);
+ 				FD_SET(wfd[1], &writer);
+ 
+-				timeout.tv_sec = (header_sent < 1) ? cl->server->conf->script_timeout : 3;
+-				timeout.tv_usec = 0;
++				timeout.tv_sec = 0;
++				timeout.tv_usec = 1000;
+ 
+ 				ensure_out(rv = select_intr(fd_max, &reader,
+ 					(content_length > -1) ? &writer : NULL, NULL, &timeout));
